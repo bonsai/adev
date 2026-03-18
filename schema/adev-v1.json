@@ -1,0 +1,414 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://adev.dev/schema/v1/adev.json",
+  "title": "adev.yaml - AI Development Configuration",
+  "description": "9-layer configuration schema for adev",
+  "type": "object",
+  "required": ["metadata", "stack", "style", "deploy", "team"],
+  
+  "properties": {
+    "metadata": {
+      "$ref": "#/definitions/metadata"
+    },
+    "context": {
+      "$ref": "#/definitions/context"
+    },
+    "stack": {
+      "$ref": "#/definitions/stack"
+    },
+    "style": {
+      "$ref": "#/definitions/style"
+    },
+    "deploy": {
+      "$ref": "#/definitions/deploy"
+    },
+    "team": {
+      "$ref": "#/definitions/team"
+    },
+    "structure": {
+      "$ref": "#/definitions/structure"
+    },
+    "constraints": {
+      "$ref": "#/definitions/constraints"
+    },
+    "quality": {
+      "$ref": "#/definitions/quality"
+    }
+  },
+
+  "definitions": {
+    "metadata": {
+      "type": "object",
+      "required": ["version", "generated", "generator"],
+      "properties": {
+        "schema": {
+          "type": "string",
+          "format": "uri",
+          "description": "JSON Schema URL"
+        },
+        "version": {
+          "type": "string",
+          "description": "Configuration version (semver)"
+        },
+        "generated": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Generation timestamp"
+        },
+        "generator": {
+          "type": "string",
+          "description": "Generator tool name"
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["chat", "manual", "import"]
+            },
+            "url": {
+              "type": "string",
+              "format": "uri"
+            },
+            "extracted_at": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "confidence": {
+          "type": "object",
+          "properties": {
+            "stack": { "type": "number", "minimum": 0, "maximum": 1 },
+            "style": { "type": "number", "minimum": 0, "maximum": 1 },
+            "deploy": { "type": "number", "minimum": 0, "maximum": 1 }
+          }
+        },
+        "history": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "timestamp": { "type": "string", "format": "date-time" },
+              "version": { "type": "string" },
+              "action": { "type": "string" },
+              "chat_context": { "type": "string" }
+            }
+          }
+        },
+        "evolution": {
+          "type": "object",
+          "properties": {
+            "stage": {
+              "type": "string",
+              "enum": ["txt", "md", "yaml", "json"]
+            },
+            "next": {
+              "type": "string",
+              "enum": ["txt", "md", "yaml", "json"]
+            },
+            "granularity": {
+              "type": "string",
+              "enum": ["coarse", "medium", "fine", "very-fine"]
+            }
+          }
+        }
+      }
+    },
+
+    "context": {
+      "type": "object",
+      "properties": {
+        "chat": {
+          "type": "object",
+          "properties": {
+            "url": { "type": "string", "format": "uri" },
+            "provider": { "type": "string" },
+            "session_id": { "type": "string" }
+          }
+        },
+        "project": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "description": { "type": "string" },
+            "vision": { "type": "string" }
+          }
+        },
+        "stakeholders": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "role": { "type": "string" },
+              "agent": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+
+    "stack": {
+      "type": "object",
+      "required": ["language"],
+      "properties": {
+        "language": {
+          "type": "object",
+          "required": ["primary"],
+          "properties": {
+            "primary": {
+              "type": "string",
+              "enum": ["ts", "js", "py", "go", "rust", "ruby", "java"]
+            },
+            "version": { "type": "string" },
+            "strict": { "type": "boolean" }
+          }
+        },
+        "runtime": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "version": { "type": "string" }
+          }
+        },
+        "framework": {
+          "type": "object",
+          "properties": {
+            "frontend": { "type": "string" },
+            "backend": { "type": "string" },
+            "build": { "type": "string" }
+          }
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "database": { "type": "string" },
+            "cache": { "type": "string" },
+            "storage": { "type": "string" }
+          }
+        },
+        "test": {
+          "type": "object",
+          "properties": {
+            "framework": { "type": "string" },
+            "coverage_threshold": { "type": "integer", "minimum": 0, "maximum": 100 },
+            "e2e": { "type": "string" }
+          }
+        },
+        "infra": {
+          "type": "object",
+          "properties": {
+            "deploy": { "type": "string" },
+            "ci_cd": { "type": "string" },
+            "monitoring": { "type": "string" }
+          }
+        }
+      }
+    },
+
+    "style": {
+      "type": "object",
+      "properties": {
+        "methodology": {
+          "type": "string",
+          "enum": ["TDD", "BDD", "Agile", "Waterfall", "XP", "Scrum"]
+        },
+        "cycle": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "git": {
+          "type": "object",
+          "properties": {
+            "provider": { "type": "string" },
+            "workflow": { "type": "string" },
+            "branch": { "type": "string" },
+            "commit_convention": { "type": "string" }
+          }
+        },
+        "code": {
+          "type": "object",
+          "properties": {
+            "formatter": { "type": "string" },
+            "linter": { "type": "string" },
+            "style_guide": { "type": "string" }
+          }
+        }
+      }
+    },
+
+    "deploy": {
+      "type": "object",
+      "required": ["platform"],
+      "properties": {
+        "platform": {
+          "type": "string",
+          "enum": ["firebase", "vercel", "netlify", "aws", "gcp", "azure", "heroku"]
+        },
+        "project": { "type": "string" },
+        "regions": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "environments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "url": { "type": "string", "format": "uri" }
+            }
+          }
+        },
+        "features": {
+          "type": "object",
+          "properties": {
+            "hosting": {
+              "type": "object",
+              "properties": {
+                "enabled": { "type": "boolean" },
+                "public_dir": { "type": "string" }
+              }
+            },
+            "functions": {
+              "type": "object",
+              "properties": {
+                "enabled": { "type": "boolean" },
+                "runtime": { "type": "string" }
+              }
+            },
+            "firestore": {
+              "type": "object",
+              "properties": {
+                "enabled": { "type": "boolean" }
+              }
+            },
+            "storage": {
+              "type": "object",
+              "properties": {
+                "enabled": { "type": "boolean" }
+              }
+            },
+            "auth": {
+              "type": "object",
+              "properties": {
+                "enabled": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "team": {
+      "type": "object",
+      "properties": {
+        "workflow": {
+          "type": "string",
+          "enum": ["chat-to-impl", "spec-first", "prototype"]
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "responsibility": { "type": "string" },
+              "tools": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            }
+          }
+        },
+        "automation": {
+          "type": "object",
+          "properties": {
+            "spec_from_chat": { "type": "boolean" },
+            "auto_commit": { "type": "boolean" },
+            "run_tests": { "type": "boolean" },
+            "auto_deploy": { "type": "boolean" }
+          }
+        }
+      }
+    },
+
+    "structure": {
+      "type": "object",
+      "properties": {
+        "root": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "src": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "test": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "configs": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+
+    "constraints": {
+      "type": "object",
+      "properties": {
+        "must": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "should": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "must_not": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+
+    "quality": {
+      "type": "object",
+      "properties": {
+        "metrics": {
+          "type": "object",
+          "properties": {
+            "maintainability_index": { "type": "integer", "minimum": 0, "maximum": 100 },
+            "technical_debt_ratio": { "type": "integer", "minimum": 0, "maximum": 100 },
+            "code_duplication": { "type": "integer", "minimum": 0, "maximum": 100 }
+          }
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["type_check", "lint", "test", "coverage", "build", "security_scan"]
+          }
+        },
+        "gates": {
+          "type": "object",
+          "properties": {
+            "pre_commit": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "pre_merge": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "pre_deploy": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

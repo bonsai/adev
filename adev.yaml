@@ -1,0 +1,252 @@
+# adev.yaml - Layered Configuration with Metadata
+# 構造化メタデータ付きレイヤー構成
+# Evolution: txt → md → yaml → json
+# Schema: https://adev.dev/schema/v1
+
+# ============================================================================
+# LAYER 0: METADATA
+# 設定自体に関するメタデータ
+# ============================================================================
+metadata:
+  schema: "https://adev.dev/schema/v1"
+  version: "1.0.0"
+  generated: "2026-03-19T00:00:00+09:00"
+  generator: adev-config-skill
+  source:
+    type: chat
+    url: https://gemini.google.com/app/edf9bb71a5ba1efc
+    extracted_at: "2026-03-19T00:00:00+09:00"
+  confidence:
+    stack: 0.95
+    style: 0.90
+    deploy: 0.85
+  history:
+    - timestamp: "2026-03-19T00:00:00+09:00"
+      version: "1.0.0"
+      action: initial_generation
+      chat_context: "Firebase で TypeScript のアプリを作りたい"
+  evolution:
+    stage: yaml
+    next: json
+    granularity: fine
+
+# ============================================================================
+# LAYER 1: CONTEXT
+# 開発の文脈・背景
+# ============================================================================
+context:
+  chat:
+    url: https://gemini.google.com/app/edf9bb71a5ba1efc
+    provider: gemini
+    session_id: ""
+  project:
+    name: ""
+    description: ""
+    vision: ""
+  stakeholders:
+    - role: product_owner
+      agent: spec_writer
+    - role: architect
+      agent: code_reviewer
+    - role: developer
+      agent: implementer
+    - role: qa_engineer
+      agent: tester
+
+# ============================================================================
+# LAYER 2: STACK
+# 技術スタックの明示的定義
+# ============================================================================
+stack:
+  # 言語レイヤー
+  language:
+    primary: ts
+    version: "5.0"
+    strict: true
+  
+  # ランタイムレイヤー
+  runtime:
+    name: node
+    version: "20"
+  
+  # フレームワークレイヤー
+  framework:
+    frontend: ""
+    backend: ""
+    build: ""
+  
+  # データレイヤー
+  data:
+    database: firebase
+    cache: ""
+    storage: firebase
+  
+  # テストレイヤー
+  test:
+    framework: jest
+    coverage_threshold: 80
+    e2e: ""
+  
+  # インフラレイヤー
+  infra:
+    deploy: firebase
+    ci_cd: github_actions
+    monitoring: ""
+
+# ============================================================================
+# LAYER 3: STYLE
+# 開発スタイル・プラクティス
+# ============================================================================
+style:
+  methodology: TDD
+  cycle:
+    - write_test
+    - run_test_fail
+    - implement
+    - run_test_pass
+    - refactor
+  git:
+    provider: github
+    workflow: trunk_based
+    branch: main
+    commit_convention: conventional_commits
+  code:
+    formatter: prettier
+    linter: eslint
+    style_guide: ""
+
+# ============================================================================
+# LAYER 4: DEPLOY
+# デプロイ・運用
+# ============================================================================
+deploy:
+  platform: firebase
+  project: ""
+  regions:
+    - asia-northeast1
+  environments:
+    - name: development
+      url: ""
+    - name: production
+      url: ""
+  features:
+    hosting:
+      enabled: true
+      public_dir: public
+    functions:
+      enabled: false
+      runtime: nodejs20
+    firestore:
+      enabled: false
+    storage:
+      enabled: false
+    auth:
+      enabled: false
+
+# ============================================================================
+# LAYER 5: TEAM
+# エージェントチーム構成
+# ============================================================================
+team:
+  workflow: chat-to-impl
+  roles:
+    - name: spec_writer
+      responsibility: Chat → 仕様書
+      tools:
+        - markdown
+        - mermaid
+    - name: code_reviewer
+      responsibility: アーキテクチャレビュー
+      tools:
+        - ast_analyzer
+        - best_practices
+    - name: implementer
+      responsibility: 実装
+      tools:
+        - code_generator
+        - refactoring
+    - name: tester
+      responsibility: テスト作成・実行
+      tools:
+        - test_generator
+        - coverage_analyzer
+    - name: deployer
+      responsibility: デプロイ
+      tools:
+        - firebase_cli
+        - ci_cd
+  automation:
+    spec_from_chat: true
+    auto_commit: false
+    run_tests: true
+    auto_deploy: false
+
+# ============================================================================
+# LAYER 6: STRUCTURE
+# プロジェクト構造
+# ============================================================================
+structure:
+  root:
+    - src/
+    - functions/
+    - public/
+    - tests/
+    - configs/
+  src:
+    - components/
+    - hooks/
+    - utils/
+    - types/
+  test:
+    - unit/
+    - integration/
+    - e2e/
+  configs:
+    - firebase.json
+    - firestore.rules
+    - storage.rules
+    - tsconfig.json
+    - .eslintrc
+    - .prettierrc
+
+# ============================================================================
+# LAYER 7: CONSTRAINTS
+# 制約条件・ガードレール
+# ============================================================================
+constraints:
+  must:
+    - "すべてのコードは型付きであること"
+    - "カバレッジ 80% 以上を維持"
+    - "main ブランチへの直接 push は禁止"
+  should:
+    - "関数は 20 行以内"
+    - "コンポーネントは単一責任"
+  must_not:
+    - "TODO コメントを 7 日以上放置"
+    - "シークレットをコードにハードコード"
+
+# ============================================================================
+# LAYER 8: QUALITY
+# 品質基準
+# ============================================================================
+quality:
+  metrics:
+    maintainability_index: 80
+    technical_debt_ratio: 5
+    code_duplication: 3
+  checks:
+    - type_check
+    - lint
+    - test
+    - coverage
+    - build
+  gates:
+    pre_commit:
+      - lint
+      - type_check
+    pre_merge:
+      - test
+      - coverage
+    pre_deploy:
+      - build
+      - e2e
