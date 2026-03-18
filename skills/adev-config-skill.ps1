@@ -1,6 +1,7 @@
 ﻿# adev-config-skill.ps1
 # 対話型仕様選択スキル - Chat → adev.yaml 自動生成
 # 機能：最適スタック提案、ADR 比較、Pro/Con 分析
+# ask_user_question 対応
 
 param(
     [string]$ChatContext,
@@ -459,139 +460,6 @@ function Extract-ConfigFromChat {
 }
 
 # ============================================================================
-# 対話モード - 選択肢を提示しながら決定
-# ============================================================================
-function Start-InteractiveConfig {
-    Write-Host "`n========================================" -ForegroundColor Cyan
-    Write-Host "  adev Config Wizard - 対話型仕様選択" -ForegroundColor Cyan
-    Write-Host "========================================`n" -ForegroundColor Cyan
-    
-    $config = @{}
-    
-    # プロジェクトタイプを聞く
-    Write-Host "【Project】どのようなプロジェクトですか？" -ForegroundColor Yellow
-    Write-Host "  1) Web アプリケーション"
-    Write-Host "  2) SPA (Single Page App)"
-    Write-Host "  3) API / バックエンド"
-    Write-Host "  4) モバイルアプリ"
-    Write-Host "  5) データ分析 / AI"
-    Write-Host "  6) CLI ツール"
-    Write-Host "  7) システムプログラミング"
-    $projectType = Read-Host "選択 (1-7) または自由入力"
-    
-    $projectMap = @{
-        "1" = "web"
-        "2" = "spa"
-        "3" = "api"
-        "4" = "mobile"
-        "5" = "data"
-        "6" = "cli"
-        "7" = "system"
-    }
-    
-    $projectKey = if ($projectMap.ContainsKey($projectType)) { $projectMap[$projectType] } else { $projectType }
-    
-    # 最適スタックを提案
-    $recommendation = Get-OptimalStack -ProjectType $projectKey -Requirements ""
-    
-    Write-Host "`n【Recommendation】" -ForegroundColor Green
-    Write-Host "  $($recommendation.Reason)" -ForegroundColor White
-    Write-Host "  Stack: $($StackOptions[$recommendation.Stack].Name) (confidence: $($recommendation.Confidence.ToString("P0")))" -ForegroundColor White
-    Write-Host "  Deploy: $($DeployOptions[$recommendation.Deploy].Name)" -ForegroundColor White
-    Write-Host "  Style: $($recommendation.Style)" -ForegroundColor White
-    
-    Write-Host "`n【Stack】この推奨で進めますか？" -ForegroundColor Yellow
-    Write-Host "  1) $($StackOptions.ts.Name) - $($StackOptions.ts.UseCases -join ', ')"
-    Write-Host "  2) $($StackOptions.js.Name) - $($StackOptions.js.UseCases -join ', ')"
-    Write-Host "  3) $($StackOptions.py.Name) - $($StackOptions.py.UseCases -join ', ')"
-    Write-Host "  4) $($StackOptions.go.Name) - $($StackOptions.go.UseCases -join ', ')"
-    Write-Host "  5) $($StackOptions.rust.Name) - $($StackOptions.rust.UseCases -join ', ')"
-    $stackChoice = Read-Host "選択 (1-5) または自由入力 (Enter: 推奨)"
-    
-    $config.Stack = switch ($stackChoice) {
-        "1" { "ts" }
-        "2" { "js" }
-        "3" { "py" }
-        "4" { "go" }
-        "5" { "rust" }
-        "" { $recommendation.Stack }
-        default { $stackChoice }
-    }
-    
-    # Stack の Pro/Con 表示
-    if ($StackOptions.ContainsKey($config.Stack)) {
-        $stackInfo = $StackOptions[$config.Stack]
-        Write-Host "`n【Stack: $($stackInfo.Name)】" -ForegroundColor Cyan
-        Write-Host "  Pros: $($stackInfo.Pros -join ', ')" -ForegroundColor Green
-        Write-Host "  Cons: $($stackInfo.Cons -join ', ')" -ForegroundColor Red
-    }
-    
-    # Deploy 選択
-    Write-Host "`n【Deploy】デプロイ先を選んでください" -ForegroundColor Yellow
-    Write-Host "  1) $($DeployOptions.firebase.Name) - $($DeployOptions.firebase.UseCases -join ', ')"
-    Write-Host "  2) $($DeployOptions.vercel.Name) - $($DeployOptions.vercel.UseCases -join ', ')"
-    Write-Host "  3) $($DeployOptions.aws.Name) - $($DeployOptions.aws.UseCases -join ', ')"
-    Write-Host "  4) $($DeployOptions.gcp.Name) - $($DeployOptions.gcp.UseCases -join ', ')"
-    $deployChoice = Read-Host "選択 (1-4) または自由入力 (Enter: 推奨)"
-    
-    $config.Deploy = switch ($deployChoice) {
-        "1" { "firebase" }
-        "2" { "vercel" }
-        "3" { "aws" }
-        "4" { "gcp" }
-        "" { $recommendation.Deploy }
-        default { $deployChoice }
-    }
-    
-    # Deploy の Pro/Con 表示
-    if ($DeployOptions.ContainsKey($config.Deploy)) {
-        $deployInfo = $DeployOptions[$config.Deploy]
-        Write-Host "`n【Deploy: $($deployInfo.Name)】" -ForegroundColor Cyan
-        Write-Host "  Pros: $($deployInfo.Pros -join ', ')" -ForegroundColor Green
-        Write-Host "  Cons: $($deployInfo.Cons -join ', ')" -ForegroundColor Red
-    }
-    
-    # Style 選択
-    Write-Host "`n【Style】開発スタイルを選んでください" -ForegroundColor Yellow
-    Write-Host "  1) $($StyleOptions.TDD.Name)"
-    Write-Host "  2) $($StyleOptions.BDD.Name)"
-    Write-Host "  3) $($StyleOptions.Agile.Name)"
-    $styleChoice = Read-Host "選択 (1-3) または自由入力"
-    
-    $config.Style = switch ($styleChoice) {
-        "1" { "TDD" }
-        "2" { "BDD" }
-        "3" { "Agile" }
-        default { "TDD" }
-    }
-    
-    # Test 選択
-    $defaultTest = if ($config.Stack -eq "ts") { "jest" }
-                   elseif ($config.Stack -eq "py") { "pytest" }
-                   elseif ($config.Stack -eq "go") { "gotest" }
-                   else { "jest" }
-    
-    Write-Host "`n【Test】テストフレームワーク (Enter: $defaultTest)" -ForegroundColor Yellow
-    $testChoice = Read-Host "フレームワーク"
-    $config.Test = if ($testChoice) { $testChoice } else { $defaultTest }
-    
-    # Chat URL
-    Write-Host "`n【Chat】Gemini チャット URL (任意)" -ForegroundColor Yellow
-    $config.ChatUrl = Read-Host "URL"
-    
-    # ADR 生成するか確認
-    Write-Host "`n【ADR】Architecture Decision Record を生成しますか？" -ForegroundColor Yellow
-    Write-Host "  比較表と決定理由を記録します"
-    $generateADR = Read-Host "生成する (y/n)"
-    
-    if ($generateADR -eq "y" -or $generateADR -eq "Y") {
-        $config.GenerateADR = $true
-    }
-    
-    return $config
-}
-
-# ============================================================================
 # 柔軟なフォーマットから YAML 生成 (Layered Structure)
 # ============================================================================
 function Convert-ToAdevYaml {
@@ -871,14 +739,107 @@ function Invoke-AdevConfigSkill {
         [switch]$Interactive,
         [string]$ChatText,
         [string]$ChatUrl,
-        [string]$OutputPath
+        [string]$OutputPath,
+        [hashtable]$Answers  # ask_user_question からの回答
     )
     
-    if ($Interactive) {
-        # 対話モード
-        $result = Start-InteractiveConfig
-        $config = $result.Config
-        $chatUrl = $result.ChatUrl
+    $config = @{}
+    
+    if ($Answers -ne $null) {
+        # ask_user_question からの回答を使用
+        Write-Host "`n【Processing Answers】" -ForegroundColor Cyan
+        
+        # Project → Stack 変換
+        $projectMap = @{
+            "Web アプリケーション" = "web"
+            "SPA" = "spa"
+            "API/Backend" = "api"
+            "モバイルアプリ" = "mobile"
+            "データ分析/AI" = "data"
+            "CLI ツール" = "cli"
+            "システムプログラミング" = "system"
+        }
+        
+        if ($Answers.ContainsKey("project") -and $projectMap.ContainsKey($Answers["project"])) {
+            $projectKey = $projectMap[$Answers["project"]]
+            $recommendation = Get-OptimalStack -ProjectType $projectKey -Requirements ""
+        } else {
+            $recommendation = Get-OptimalStack -ProjectType "" -Requirements ""
+        }
+        
+        # 推奨値を使用
+        $config.Stack = $recommendation.Stack
+        $config.Deploy = $recommendation.Deploy
+        $config.Style = $recommendation.Style
+        
+        Write-Host "  Stack:  $($StackOptions[$config.Stack].Name)" -ForegroundColor White
+        Write-Host "  Deploy: $($DeployOptions[$config.Deploy].Name)" -ForegroundColor White
+        Write-Host "  Style:  $($config.Style)" -ForegroundColor White
+        
+    }
+    elseif ($Interactive) {
+        # 対話モード (従来の Read-Host フォールバック)
+        Write-Host "`n=== ADEV Interactive Config ===" -ForegroundColor Cyan
+        
+        # 質問を JSON 形式で出力 (ask_user_question 用)
+        $questions = @(
+            @{
+                header = "Project"
+                question = "どのようなプロジェクトですか？"
+                options = @(
+                    @{ label = "Web アプリケーション"; description = "標準的な Web アプリ" },
+                    @{ label = "SPA"; description = "Single Page App (React, Vue, etc)" },
+                    @{ label = "API/Backend"; description = "REST/GraphQL API" },
+                    @{ label = "モバイルアプリ"; description = "iOS/Android アプリ" },
+                    @{ label = "データ分析/AI"; description = "機械学習、データ分析" },
+                    @{ label = "CLI ツール"; description = "コマンドラインツール" },
+                    @{ label = "システムプログラミング"; description = "組み込み、パフォーマンス重視" }
+                )
+                multiSelect = $false
+            }
+        )
+        
+        $questionsJson = $questions | ConvertTo-Json -Depth 10
+        Write-Host "`nQuestions (JSON format for ask_user_question):" -ForegroundColor Gray
+        Write-Host $questionsJson -ForegroundColor White
+        Write-Host ""
+        
+        # 従来対話フォールバック
+        Write-Host "【Project】どのようなプロジェクトですか？" -ForegroundColor Yellow
+        Write-Host "  1) Web アプリケーション"
+        Write-Host "  2) SPA (Single Page App)"
+        Write-Host "  3) API / バックエンド"
+        Write-Host "  4) モバイルアプリ"
+        Write-Host "  5) データ分析 / AI"
+        Write-Host "  6) CLI ツール"
+        Write-Host "  7) システムプログラミング"
+        $projectType = Read-Host "選択 (1-7) または自由入力"
+        
+        $projectMap = @{
+            "1" = "web"
+            "2" = "spa"
+            "3" = "api"
+            "4" = "mobile"
+            "5" = "data"
+            "6" = "cli"
+            "7" = "system"
+        }
+        
+        $projectKey = if ($projectMap.ContainsKey($projectType)) { $projectMap[$projectType] } else { $projectType }
+        
+        # 最適スタックを提案
+        $recommendation = Get-OptimalStack -ProjectType $projectKey -Requirements ""
+        
+        Write-Host "`n【Recommendation】" -ForegroundColor Green
+        Write-Host "  $($recommendation.Reason)" -ForegroundColor White
+        Write-Host "  Stack: $($StackOptions[$recommendation.Stack].Name) (confidence: $($recommendation.Confidence.ToString("P0")))" -ForegroundColor White
+        Write-Host "  Deploy: $($DeployOptions[$recommendation.Deploy].Name)" -ForegroundColor White
+        Write-Host "  Style: $($recommendation.Style)" -ForegroundColor White
+        
+        $config.Stack = $recommendation.Stack
+        $config.Deploy = $recommendation.Deploy
+        $config.Style = $recommendation.Style
+        
     }
     elseif ($ChatText) {
         # 自動抽出モード
@@ -914,6 +875,14 @@ function Invoke-AdevConfigSkill {
         }
     }
     
+    # Test default
+    if (-not $config.Test) {
+        $config.Test = if ($config.Stack -eq "ts") { "jest" }
+                      elseif ($config.Stack -eq "py") { "pytest" }
+                      elseif ($config.Stack -eq "go") { "gotest" }
+                      else { "jest" }
+    }
+    
     # YAML 生成
     $yaml = Convert-ToAdevYaml -Config $config -ChatUrl $ChatUrl
     
@@ -932,11 +901,6 @@ function Invoke-AdevConfigSkill {
         Write-Host "  Pros: $($DeployOptions[$config.Deploy].Pros -join ', ')" -ForegroundColor Green
         Write-Host "  Cons: $($DeployOptions[$config.Deploy].Cons -join ', ')" -ForegroundColor Red
         Write-Host "Test:   $($config.Test)" -ForegroundColor White
-        
-        # ADR 生成
-        if ($config.GenerateADR) {
-            New-ADRFile -Config $config
-        }
     }
     else {
         # stdout に出力
@@ -948,23 +912,21 @@ function Invoke-AdevConfigSkill {
 # エクスポート (モジュール内からのみ実行)
 # ============================================================================
 if ($MyInvocation.MyCommand.Module -ne $null) {
-    Export-ModuleMember -Function Invoke-AdevConfigSkill, Extract-ConfigFromChat, Start-InteractiveConfig, Get-OptimalStack, New-ADRFile
+    Export-ModuleMember -Function Invoke-AdevConfigSkill, Extract-ConfigFromChat, Get-OptimalStack, New-ADRFile
 }
 
 # スクリプト直接実行時の処理
 if ($MyInvocation.ScriptName -and $MyInvocation.ScriptName -ne $PROFILE) {
-    Write-Host "adev-config-skill starting..." -ForegroundColor Cyan
-    Write-Host "Args: $($args -join ', ')" -ForegroundColor Gray
+    Write-Host "`n=== adev-config-skill ===" -ForegroundColor Cyan
     
     if ($args[0] -eq "-i" -or $args[0] -eq "-interactive") {
         Invoke-AdevConfigSkill -Interactive
     }
     elseif ($args[0] -eq "-chat") {
         $chatText = $args[1..($args.Length-1)] -join " "
-        Write-Host "Chat text: $chatText" -ForegroundColor Gray
         Invoke-AdevConfigSkill -ChatText $chatText -OutputPath ".\adev.yaml"
     }
     else {
-        Invoke-AdevConfigSkill
+        Invoke-AdevConfigSkill -OutputPath ".\adev.yaml"
     }
 }

@@ -4,13 +4,28 @@ Configuration skills for adev.yaml generation and evolution.
 
 ## Quick Start
 
-```powershell
-# Interactive mode with recommendations
-.\skills\adev-config-skill.ps1 -i
+### Option 1: ask_user_question (Interactive UI)
 
-# From chat (auto-suggest optimal stack)
+```powershell
+# Output questions in ask_user_question format
+.\skills\adev-config-ask.ps1
+```
+
+This outputs JSON questions that Qwen Code can parse and display as interactive UI.
+
+### Option 2: Interactive Mode (CLI)
+
+```powershell
+.\skills\adev-config-skill.ps1 -i
+```
+
+### Option 3: From Chat (Auto-inference)
+
+```powershell
 .\skills\adev-config-skill.ps1 -chat "Web アプリ作りたい"
 ```
+
+Auto-suggests optimal stack from keywords.
 
 ## Available Skills
 
